@@ -28,13 +28,13 @@ CREATE TABLE employee (
 );
 
 INSERT INTO department (id, name)
-VALUES (1, "sales"),(2, "marketing"),(3, "retail");
+VALUES (1, "Sales"),(2, "Engineering"),(3, "Finance"), (4, "Legal");
 
 INSERT INTO role (id, title, salary, department_id)
-VALUES (1, "sales manager", 70000, 1), (2, "marketing manager", 60000, 2), (3, "retail manager", 50000, 3), (4, "sales employee", 35000, 1), (5, "marketing employee", 30000, 2), (6, "retail employee", 25000, 3);
+VALUES (1, "Sales Lead", 100000, 1), (2, "Salesperson", 80000, 1), (3, "Lead Engineer", 150000, 2), (4, "Software Engineer", 120000, 2), (5, "Accountant", 125000, 3), (6, "Legal Team Lead", 250000, 4), (7, "Lawyer", 190000, 4);
 
 INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Geddy", "Lee", 1), ("Claudio", "Sanchez", 2), ("Les", "Claypool", 3);
+VALUES ("Geddy", "Lee", 3), ("Claudio", "Sanchez", 5), ("Les", "Claypool", 6);
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
-VALUES ("Serj", "Tankian", 4, 1), ("Nathaniel", "Rateliff", 4, 2), ("Joe", "Lewis", 4, 3), ("Gary", "Clark", 5, 1), ("Robert", "Plant", 5, 2), ("Bon", "Scott", 5, 3), ("Ozzy", "Osbourne", 6, 1), ("Roger", "Waters", 6, 2), ("Jerry", "Garcia", 6, 3)
+VALUES ("Jerry", "Garcia", 1, 1), ("Nathaniel", "Rateliff", 2, 4), ("Gary", "Clark Jr.", 4, 2), ("Robert", "Plant", 7, 3), ("Roger", "Waters", 4, 2)
