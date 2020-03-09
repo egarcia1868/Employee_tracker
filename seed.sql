@@ -15,7 +15,8 @@ CREATE TABLE role (
     title VARCHAR(30),
     salary DECIMAL,
     department_id INT,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (department_id) REFERENCES department (id)
 );
 
 CREATE TABLE employee (
@@ -24,7 +25,9 @@ CREATE TABLE employee (
     last_name VARCHAR(30),
     role_id INT,
 	manager_id INT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (role_id) REFERENCES role (id),
+    FOREIGN KEY (manager_id) REFERENCES employee (id)
 );
 
 INSERT INTO department (id, name)
@@ -37,4 +40,9 @@ INSERT INTO employee (first_name, last_name, role_id)
 VALUES ("Geddy", "Lee", 3), ("Claudio", "Sanchez", 5), ("Les", "Claypool", 6);
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
-VALUES ("Jerry", "Garcia", 1, 1), ("Nathaniel", "Rateliff", 2, 4), ("Gary", "Clark Jr.", 4, 2), ("Robert", "Plant", 7, 3), ("Roger", "Waters", 4, 2)
+VALUES ("Jerry", "Garcia", 1, 1), ("Nathaniel", "Rateliff", 2, 4), ("Gary", "Clark Jr.", 4, 2), ("Robert", "Plant", 7, 3), ("Roger", "Waters", 4, 2);
+
+-- SELECT employee.id, employee.first_name, employee.last_name, employee.role_id
+
+SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary, employee.first_name+" "+employee.last_name FROM ((employee INNER JOIN role ON employee.role_id=role.id)INNER JOIN department ON department.id=employee.department_id);
+-- INNER JOIN employee ON employee.manager_id=employee.id)
