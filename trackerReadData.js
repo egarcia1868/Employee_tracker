@@ -58,6 +58,10 @@ function sorter(sorted, sortBy) {
   });
 }
 
+function findIndex(array, searchFor) {
+  return 
+}
+
 function listManagers() {
   const managerList = [];
   managerList.push("None");
@@ -175,6 +179,46 @@ function init() {
         })
         break;
       case "Update Employee Manager":
+        // let newManagerList = [];
+        const updateManagerQuestion = [{
+          type: "list",
+          message: "Which employee's manager do you want to update?",
+          name: "managerUpdate",
+          choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+        }];
+        inquirer.prompt(updateManagerQuestion).then(ans => {
+          const split = ans.managerUpdate.split(" ");
+          const index = sortedList.findIndex(x => x.id ===parseInt(split[1]));
+          // console.log(index);
+          const removed = sortedList.splice(index, 1);
+          console.log(sortedList);
+        // connection.query(`SELECT employee.id FROM employee WHERE`)
+          const secondManagerQuestion = [{
+            type: "list",
+            message: "Which employee do you want to set as manager for the selected employee?",
+            name: "newManager",
+            choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+          }];
+          inquirer.prompt(secondManagerQuestion).then(ans2 => {
+            const split2 = ans2.newManager.split(" ");
+            connection.query(`UPDATE employee SET manager_id=${split2[1]} WHERE id=${split[1]}`, err => {
+              if (err) throw err;
+              init();
+            })
+          })
+        });
+        // inquirer.prompt(updateRoleQuestion).then(ans => {
+        //   const split = ans.roleUpdate.split(" ");
+        //   // console.log(split[1]);
+        //   connection.query(`SELECT role.id FROM role WHERE ?`, {"title":ans.updatedRole}, (err, res1) => {
+        //     if (err) throw err;
+        //     // console.log(res1[0].id)
+        //     connection.query(`UPDATE employee SET role_id=${res1[0].id} WHERE ?`, {"id":split[1]}, err => {
+        //       if (err) throw err;
+        //       init();
+        //     })
+        //   });
+        // })
         break;
       case "View All Roles":
         roles.map(role => {console.log(role.title)});
