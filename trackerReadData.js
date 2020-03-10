@@ -4,6 +4,7 @@ const cTable = require("console.table");
 const Employee = require("./Assets/script");
 let sortedList;
 let alphabetized;
+const roles = []
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -12,7 +13,7 @@ const connection = mysql.createConnection({
 
   user: "root",
 
-  password:  "Spackle123",
+  password:  "",
   database: "employeeTrackerDB"
 });
 
@@ -52,6 +53,8 @@ function sorter(sorted, sortBy) {
 
 function init() {
   generateAll();
+  gatherRoles();
+  // console.log(firstQuestion[0].choices);
   inquirer
   .prompt(firstQuestion).then(ans => {
     switch (ans.whatToDo) {
@@ -72,6 +75,18 @@ function init() {
         init();
         break;
       case "Add Employee":
+        const addQuestions = [{
+          message: "What is the employee's first name?",
+          name: "addFirst"
+        },{
+          message: "What is the employee's last name?",
+          name: "addLast"
+        },{
+          type: "list",
+          message: "What is the employee's role?",
+          name: "addRole",
+          choices: roles
+        }]
         break;
       case "Remove Employee":
         const removeQuestion = [{
@@ -93,6 +108,8 @@ function init() {
       case "Update Employee Manager":
         break;
       case "View All Roles":
+        roles.map(role => {console.log(role.title)});
+        init();
         break;
       case "Add Role":
         break;
@@ -110,6 +127,15 @@ function init() {
 function display(displayed) {
   console.table(displayed);
 };
+
+function gatherRoles() {
+  connection.query(`SELECT role.title FROM role`, (err, res) => {
+    if (err) throw err;
+    res.map(role => {
+      roles.push(role)
+    })
+  })
+}
 
 function generateAll() {
   sortedList = [];
