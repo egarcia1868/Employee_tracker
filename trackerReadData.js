@@ -3,6 +3,7 @@ const inquirer = require("inquirer");
 const cTable = require("console.table");
 const Employee = require("./Assets/script");
 let sortedList;
+let alphabetized;
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -11,7 +12,7 @@ const connection = mysql.createConnection({
 
   user: "root",
 
-  password:  "",
+  password:  "Spackle123",
   database: "employeeTrackerDB"
 });
 
@@ -35,13 +36,17 @@ function getThatRole() {
   connection.query("")
 }
 
-function sorter(sorted) {
+function sorter(sorted, sortBy) {
   sorted.sort((a, b) => {
-    var x = a.department.toLowerCase();
-    var y = b.department.toLowerCase();
+    if (a[sortBy] !== null && b[sortBy] !== null) {
+    var x = a[sortBy].toLowerCase();
+    var y = b[sortBy].toLowerCase();
     if (x < y) {return -1;}
     if (x > y) {return 1;}
     return 0;
+    } else {
+      return -1
+    }
   });
 }
 
@@ -55,11 +60,16 @@ function init() {
         init();
         break;
       case "View All Employees By Department":
-        const alphabetized = sortedList;
-        sorter(alphabetized)
-        display(alphabetized)
+        alphabetized = sortedList;
+        sorter(alphabetized, "department");
+        display(alphabetized);
+        init();
         break;
-      case "View All Employees By Manager": 
+      case "View All Employees By Manager":
+        alphabetized = sortedList;
+        sorter(alphabetized, "manager");
+        display(alphabetized);
+        init();
         break;
       case "Add Employee":
         break;
