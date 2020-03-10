@@ -35,6 +35,16 @@ function getThatRole() {
   connection.query("")
 }
 
+function sorter(sorted) {
+  sorted.sort((a, b) => {
+    var x = a.department.toLowerCase();
+    var y = b.department.toLowerCase();
+    if (x < y) {return -1;}
+    if (x > y) {return 1;}
+    return 0;
+  });
+}
+
 function init() {
   generateAll();
   inquirer
@@ -46,13 +56,7 @@ function init() {
         break;
       case "View All Employees By Department":
         const alphabetized = sortedList;
-        alphabetized.sort((a, b) => {
-          var x = a.department.toLowerCase();
-          var y = b.department.toLowerCase();
-          if (x < y) {return -1;}
-          if (x > y) {return 1;}
-          return 0;
-        });
+        sorter(alphabetized)
         display(alphabetized)
         break;
       case "View All Employees By Manager": 
