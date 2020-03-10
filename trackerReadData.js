@@ -51,6 +51,13 @@ function sorter(sorted, sortBy) {
   });
 }
 
+function listManagers() {
+  const managerList = [];
+  managerList.push("None");
+  sortedList.map(emp => {managerList.push(emp.first_name+" "+emp.last_name)})
+  return managerList;
+};
+
 function init() {
   generateAll();
   gatherRoles();
@@ -85,8 +92,38 @@ function init() {
           type: "list",
           message: "What is the employee's role?",
           name: "addRole",
-          choices: roles
-        }]
+          choices: roles.map(role => {return `${role.title}`})
+        },{
+          type: "list",
+          message: "Who is the employee's manager?",
+          name: "addManager",
+          choices: listManagers()
+        }];
+        inquirer.prompt(addQuestions).then(ans => {
+          if (ans.addManager !== "None") {
+            let managerSplit = ans.addManager.split(" ");
+            connection.query(`SELECT role.id FROM role WHERE ?`, {"role.title":ans.addRole}, (err, res1) => {
+              if (err) throw err;
+              // console.log(res1[0].id);
+              connection.query("SELECT employee.id FROM employee WHERE ? AND ?", [{"employee.first_name":managerSplit[0]}, {"employee.last_name":managerSplit[1]}], (err, res2) => {
+                if (err) throw err;
+                // console.log(res2[0].id)
+                connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${ans.addFirst}", "${ans.addLast}", ${res1[0].id}, ${res2[0].id})`, (err, res3) => {
+                  if (err) throw err;
+                  init();
+                });
+              });
+            })
+          } else {
+            connection.query(`SELECT role.id FROM role WHERE ?`, {"role.title":ans.addRole}, (err, res1) => {
+              if (err) throw err;
+              connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${ans.addFirst}", "${ans.addLast}", ${res1[0].id}, null)`, (err, res3) => {
+                if (err) throw err;
+                init();
+              });
+            });
+          }
+        })
         break;
       case "Remove Employee":
         const removeQuestion = [{
