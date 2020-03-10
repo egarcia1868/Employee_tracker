@@ -41,24 +41,25 @@ function init() {
   .prompt(firstQuestion).then(ans => {
     switch (ans.whatToDo) {
       case "View All Employees": 
-        displayAll();
+        display(sortedList);
         init();
         break;
-      case "View All Employees By Department": 
+      case "View All Employees By Department":
+        const alphabetized = sortedList;
+        alphabetized.sort((a, b) => {
+          var x = a.department.toLowerCase();
+          var y = b.department.toLowerCase();
+          if (x < y) {return -1;}
+          if (x > y) {return 1;}
+          return 0;
+        });
+        display(alphabetized)
         break;
       case "View All Employees By Manager": 
         break;
       case "Add Employee":
         break;
       case "Remove Employee":
-        // const alphabetized = sortedList;
-        // alphabetized.sort((a, b) => {
-        //   var x = a.last_name.toLowerCase();
-        //   var y = b.last_name.toLowerCase();
-        //   if (x < y) {return -1;}
-        //   if (x > y) {return 1;}
-        //   return 0;
-        // });
         const removeQuestion = [{
           type: "list",
           message: "Which employee do you want to remove?",
@@ -92,8 +93,8 @@ function init() {
   })
 }
 
-function displayAll() {
-  console.table(sortedList);
+function display(displayed) {
+  console.table(displayed);
 };
 
 function generateAll() {
