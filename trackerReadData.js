@@ -34,8 +34,15 @@ connection.connect(err => {
 });
 
 function getThatRole() {
-  connection.query("")
+  connection.query(`SELECT role.title FROM role`)
 }
+
+// function getRoles() {
+//   connection.query(`SELECT role.title FROM role`, (err, res) => {
+//     if (err) throw err;
+//     console.log(res)
+//   });
+// }
 
 function sorter(sorted, sortBy) {
   sorted.sort((a, b) => {
@@ -136,11 +143,36 @@ function init() {
           // console.log(ans.removeWhich);
           // console.log(ans);
           const split = ans.removeWhich.split(" ");
-          connection.query(`DELETE FROM employee WHERE id = ${split[1]}`);
-          init();
+          connection.query(`DELETE FROM employee WHERE id = ${split[1]}`, err => {
+            if (err) throw err;
+            init();
+          });
         });
         break;
       case "Update Employee Role":
+        const updateRoleQuestion = [{
+          type: "list",
+          message: "Which employee's role do you want to update?",
+          name: "roleUpdate",
+          choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+        },{
+          type: "list",
+          message: "What is the new role you want to assign for the selected employee?",
+          name: "updatedRole",
+          choices: roles.map(role => {return role.title})
+        }];
+        inquirer.prompt(updateRoleQuestion).then(ans => {
+          const split = ans.roleUpdate.split(" ");
+          // console.log(split[1]);
+          connection.query(`SELECT role.id FROM role WHERE ?`, {"title":ans.updatedRole}, (err, res1) => {
+            if (err) throw err;
+            // console.log(res1[0].id)
+            connection.query(`UPDATE employee SET role_id=${res1[0].id} WHERE ?`, {"id":split[1]}, err => {
+              if (err) throw err;
+              init();
+            })
+          });
+        })
         break;
       case "Update Employee Manager":
         break;
