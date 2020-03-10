@@ -1,7 +1,8 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
-const Employee = require("./Assets/script")
+const Employee = require("./Assets/script");
+let sortedList;
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -14,21 +15,89 @@ const connection = mysql.createConnection({
   database: "employeeTrackerDB"
 });
 
+const firstQuestion = [{
+  type: "list",
+  message: "What would you like to do?",
+  name: "whatToDo",
+  choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "View All Roles", "Add Role", "Remove Role", "QUIT"]
+}]
+
 connection.connect(err => {
   if (err) throw err;
   console.log(`connected as id ${connection.threadId}`);
   //  here I run whatever functions I need to get going to initiate everything.
   //  need to end connection with last function. --  connection.end()
   // getThatRole();
-  displayAll();
+  init();
 });
 
 function getThatRole() {
   connection.query("")
 }
 
+function init() {
+  generateAll();
+  inquirer
+  .prompt(firstQuestion).then(ans => {
+    switch (ans.whatToDo) {
+      case "View All Employees": 
+        displayAll();
+        init();
+        break;
+      case "View All Employees By Department": 
+        break;
+      case "View All Employees By Manager": 
+        break;
+      case "Add Employee":
+        break;
+      case "Remove Employee":
+        // const alphabetized = sortedList;
+        // alphabetized.sort((a, b) => {
+        //   var x = a.last_name.toLowerCase();
+        //   var y = b.last_name.toLowerCase();
+        //   if (x < y) {return -1;}
+        //   if (x > y) {return 1;}
+        //   return 0;
+        // });
+        const removeQuestion = [{
+          type: "list",
+          message: "Which employee do you want to remove?",
+          name: "removeWhich",
+          choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+        }];
+        inquirer.prompt(removeQuestion).then(ans => {
+          // console.log(ans.removeWhich);
+          // console.log(ans);
+          const split = ans.removeWhich.split(" ");
+          connection.query(`DELETE FROM employee WHERE id = ${split[1]}`);
+          init();
+        });
+        break;
+      case "Update Employee Role":
+        break;
+      case "Update Employee Manager":
+        break;
+      case "View All Roles":
+        break;
+      case "Add Role":
+        break;
+      case "Remove Role":
+        break;
+      case "QUIT":
+        connection.end();
+        break;
+     default:
+      return undefined;
+    }
+  })
+}
+
 function displayAll() {
-  let formattedRes = [];
+  console.table(sortedList);
+};
+
+function generateAll() {
+  sortedList = [];
   connection.query(`SELECT employee.id, employee.first_name, employee.last_name, employee.role_id, role.title, role.salary, employee.manager_id FROM employee INNER JOIN role ON employee.role_id=role.id`, (err, res1) => {
     if (err) throw err;
     res1.map(emp => {
@@ -45,10 +114,11 @@ function displayAll() {
         // console.log(res2[0].first_name)
         genEmp.manager = res2[0].first_name+" "+res2[0].last_name;
         }
-        formattedRes.push(genEmp);
-        if (res1.length === formattedRes.length) {
-          formattedRes.sort((a, b) => {return a.id - b.id});
-          console.table(formattedRes);
+        sortedList.push(genEmp);
+        if (res1.length === sortedList.length) {
+          sortedList.sort((a, b) => {return a.id - b.id});
+          
+          // console.table(sortedList);
           };
       });
       // console.log(`${counter} || ${res1.length} `)
@@ -73,12 +143,12 @@ function displayAll() {
     //     // console.log("dep: "+ res2[0].name)
     //     genEmp.department = res2[0].name;
     //     // console.log(genEmp);
-    //     formattedRes.push(genEmp);
+    //     sortedList.push(genEmp);
     //     console.log(`counterinside2: ${counter}`);
     //   });
     //   console.log(`counter:  ${counter} | res1.length:  ${res1.length}`);
     //   if (counter === res1.length) {
-    //     console.log(formattedRes);
+    //     console.log(sortedList);
     //     };
     // });
 
@@ -96,7 +166,7 @@ function displayAll() {
   // console.log(res.length);
   
 // here I want to bring in the response, format the response to an array of objects with manager's names, salaries, departments, titles so I can use it for my table.
-                      // let formattedRes = [];
+                      // let sortedList = [];
                       // res.map(emp => {
                       //   const genEmp = new Employee(emp.id, emp.first_name, emp.last_name);
                       //   connection.query("SELECT * FROM employee", (err, res) => {
@@ -112,8 +182,6 @@ function displayAll() {
 
     //   }
     // ]);
-    
-  connection.end();
   });
 
 }

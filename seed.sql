@@ -40,9 +40,24 @@ INSERT INTO employee (first_name, last_name, role_id)
 VALUES ("Geddy", "Lee", 3), ("Claudio", "Sanchez", 5), ("Les", "Claypool", 6);
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
-VALUES ("Jerry", "Garcia", 1, 1), ("Nathaniel", "Rateliff", 2, 4), ("Gary", "Clark Jr.", 4, 2), ("Robert", "Plant", 7, 3), ("Roger", "Waters", 4, 2);
+VALUES ("Jerry", "Garcia", 1, 1), ("Nathaniel", "Rateliff", 2, 4), ("Gary", "Clark Jr.", 4, 2), ("Robert", "Plant", 7, 3), ("Roger", "Waters", 4, 2), ("DELETE", "ME", 4, 1);
 
 -- SELECT employee.id, employee.first_name, employee.last_name, employee.role_id
 
-SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary, employee.first_name+" "+employee.last_name FROM ((employee INNER JOIN role ON employee.role_id=role.id)INNER JOIN department ON department.id=employee.department_id);
--- INNER JOIN employee ON employee.manager_id=employee.id)
+-- SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary, employee.first_name+" "+employee.last_name 
+-- FROM ((employee INNER JOIN role ON employee.role_id=role.id)INNER JOIN department ON department.id=employee.department_id)
+-- INNER JOIN employee ON employee.manager_id=employee.id);
+
+-- SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, employee.manager_id 
+-- FROM employee INNER JOIN role ON employee.role_id=role.id;
+-- 
+-- SELECT employee.first_name, employee.last_name FROM employee WHERE employee.id=res1[5];
+-- 
+
+SELECT department.name FROM role INNER JOIN department ON role.department_id=department.id AND role.id=1
+
+-- SELECT department.name FROM role INNER JOIN department ON role.department_id=department.id;
+-- INNER JOIN department ON department.id=employee.department_id);
+-- WHERE employee.manager_id=employee.id);
+
+-- SELECT employee.first_name FROM employee WHERE employee.first_name="geddy"
