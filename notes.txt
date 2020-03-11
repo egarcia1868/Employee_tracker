@@ -4,11 +4,19 @@ write out code connecting my js to sql
 
 In a seperate js file, write out code grouping employees by various criteria
 
-  make class constructors that will contain functions that will get roles, departments, salarys, names, managers, 
+/  make class constructors that will contain functions that will get roles, departments, salarys, names, managers, 
 
   make functions that will allow roles to be updated
 
   make functions that will display employees grouped by managers and department budgets (combined department salaries)
 
   make functions that will delete departments, roles, and employees
+
+    choose role to remove
+/      find role id of role
+        
+/      find employees that are assigned that role id and change to null
+        employee.roleid=role.id
+   
+/      delete role
 

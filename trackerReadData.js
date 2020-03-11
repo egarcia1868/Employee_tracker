@@ -15,7 +15,7 @@ const connection = mysql.createConnection({
 
   user: "root",
 
-  password:  "",
+  password:  "Spackle123",
   database: "employeeTrackerDB"
 });
 
@@ -281,6 +281,8 @@ function init() {
           })
         });
         break;
+      case "Add department":
+        break;
       case "QUIT":
         connection.end();
         break;
@@ -314,15 +316,18 @@ function gatherDepartments() {
 
 function generateAll() {
   sortedList = [];
-  connection.query(`SELECT employee.id, employee.first_name, employee.last_name, employee.role_id, role.title, role.salary, employee.manager_id FROM employee INNER JOIN role ON employee.role_id=role.id`, (err, res1) => {
+  connection.query(`SELECT employee.id, employee.first_name, employee.last_name, employee.role_id, role.title, role.salary, employee.manager_id FROM employee LEFT JOIN role ON employee.role_id=role.id OR employee.role_id=null`, (err, res1) => {
     if (err) throw err;
     res1.map(emp => {
       const genEmp = new Employee(emp.id, emp.first_name, emp.last_name, emp.title, null, emp.salary, null);
       connection.query(`SELECT department.name FROM role INNER JOIN department ON role.department_id=department.id AND role.id=${emp.role_id}`, (err, res2) => {
         if (err) throw err;
+        // console.log(res2[0])
         // console.log("dep: "+ res2[0].name)
-        genEmp.department = res2[0].name;
+        if (res2[0] !== undefined) {
+          genEmp.department = res2[0].name;
         // console.log(genEmp);
+        };
       });
       connection.query(`SELECT employee.first_name, employee.last_name FROM employee WHERE employee.id=${emp.manager_id}`, (err, res2) => {
         if (err) throw err;
