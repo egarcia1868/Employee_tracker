@@ -4,7 +4,9 @@ const cTable = require("console.table");
 const Employee = require("./Assets/script");
 let sortedList;
 let alphabetized;
-const roles = []
+let roles = [];
+let departments = [];
+
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -72,6 +74,7 @@ function listManagers() {
 function init() {
   generateAll();
   gatherRoles();
+  gatherDepartments();
   // console.log(firstQuestion[0].choices);
   inquirer
   .prompt(firstQuestion).then(ans => {
@@ -225,8 +228,38 @@ function init() {
         init();
         break;
       case "Add Role":
+        // console.log(departments);
+        // console.log(departments[1].name);
+        const addRoleQuestion = [{
+          message: "What role would you like to create?",
+          name: "newRole",
+        },{
+          message: "What is the salary for this role?",
+          name: "newSalary"
+        },{
+          type: "list",
+          message: "In which department is this role?",
+          name: "inDepartment",
+          choices: departments.map(department => {return department.name})
+          // ortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+        }];
+        inquirer.prompt(addRoleQuestion).then(ans => {
+          connection.query(`SELECT department.id FROM department WHERE department.name="${ans.inDepartment}"`, (err, res) => {
+            // console.log(res[0].id)
+            let newIndex;
+            connection.query(`SELECT role.id FROM role`, (err, res2) => {
+              if (err) throw err;
+              newIndex = res2[res2.length-1].id+1;
+              connection.query(`INSERT INTO role (id, title, salary, department_id) VALUES (${newIndex}, "${ans.newRole}", ${ans.newSalary}, ${res[0].id})`, err => {
+                if (err) throw err;
+                init();
+              });
+            });
+          });
+        })
         break;
       case "Remove Role":
+        
         break;
       case "QUIT":
         connection.end();
@@ -248,7 +281,16 @@ function gatherRoles() {
       roles.push(role)
     })
   })
-}
+};
+
+function gatherDepartments() {
+  connection.query(`SELECT department.name FROM department`, (err, res) => {
+    if (err) throw err;
+    res.map(department => {
+      departments.push(department)
+    })
+  })
+};
 
 function generateAll() {
   sortedList = [];
