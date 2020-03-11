@@ -58,6 +58,8 @@ FROM employee INNER JOIN role ON employee.role_id=role.id;
 
 SELECT department.name FROM role INNER JOIN department ON role.department_id=department.id AND role.id=1;
 
+SELECT employee.id FROM role INNER JOIN employee ON role.id=employee.role_id AND role.title="DELETE ROLE";
+
 -- SELECT department.name FROM role INNER JOIN department ON role.department_id=department.id;
 -- INNER JOIN department ON department.id=employee.department_id);
 -- WHERE employee.manager_id=employee.id);

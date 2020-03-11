@@ -259,7 +259,27 @@ function init() {
         })
         break;
       case "Remove Role":
-        
+        const removeRoleQuestion = [{
+          type: "list",
+          message: "Which role do you want to remove",
+          name: "roleToRemove",
+          choices: roles.map(role => {return role.title})
+        }];
+        inquirer.prompt(removeRoleQuestion).then(ans => {
+          connection.query(`SELECT employee.id FROM role INNER JOIN employee ON role.id=employee.role_id AND role.title="${ans.roleToRemove}"`, (err, res) => {
+            if (err) throw err;
+            // console.log(res[0].id)
+            res.map(emp => {
+              connection.query(`UPDATE employee SET role_id=null WHERE id=${emp.id}`, err => {
+                if (err) throw err;
+              })
+            })
+            connection.query(`DELETE FROM role WHERE title = "${ans.roleToRemove}"`, err => {
+              if (err) throw err;
+              init();
+            })
+          })
+        });
         break;
       case "QUIT":
         connection.end();
