@@ -15,7 +15,7 @@ const connection = mysql.createConnection({
 
   user: "root",
 
-  password:  "",
+  password:  "Spackle123",
   database: "employeeTrackerDB"
 });
 
@@ -23,7 +23,7 @@ const firstQuestion = [{
   type: "list",
   message: "What would you like to do?",
   name: "whatToDo",
-  choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add...", "Remove Employee", "Update Employee Role", "Update Employee Manager", "View All Roles", "Remove Role", "QUIT"]
+  choices: ["View...", "Add...", "Remove...", "Update Employee Role", "Update Employee Manager", "View All Roles", "Remove Role", "QUIT"]
 }]
 
 connection.connect(err => {
@@ -72,6 +72,8 @@ function listManagers() {
 };
 
 function init() {
+  roles = [];
+  departments = [];
   generateAll();
   gatherRoles();
   gatherDepartments();
@@ -79,21 +81,50 @@ function init() {
   inquirer
   .prompt(firstQuestion).then(ans => {
     switch (ans.whatToDo) {
-      case "View All Employees": 
-        display(sortedList);
-        init();
-        break;
-      case "View All Employees By Department":
-        alphabetized = sortedList;
-        sorter(alphabetized, "department");
-        display(alphabetized);
-        init();
-        break;
-      case "View All Employees By Manager":
-        alphabetized = sortedList;
-        sorter(alphabetized, "manager");
-        display(alphabetized);
-        init();
+      case "View...":
+        const viewWhatQuestion = [{
+          type: "list",
+          message: "What would you like to view?",
+          name: "viewWhat",
+          choices: ["All Employees", "All Employees By Department", "All Employees By Manager", "All Departments", "All Roles", "GO BACK"]
+        }];
+        inquirer.prompt(viewWhatQuestion).then(ans => {
+          switch (ans.viewWhat) {
+            case viewWhatQuestion[0].choices[0]:
+              display(sortedList);
+              init();
+              break;
+            case viewWhatQuestion[0].choices[1]:
+              alphabetized = sortedList;
+              sorter(alphabetized, "department");
+              display(alphabetized);
+              init();
+              break;
+            case viewWhatQuestion[0].choices[2]:
+              alphabetized = sortedList;
+              sorter(alphabetized, "manager");
+              display(alphabetized);
+              init();
+              break;
+            case viewWhatQuestion[0].choices[3]:
+              alphabetized = departments;
+              sorter(alphabetized, "name");
+              display(alphabetized);
+              init();
+              break;
+            case viewWhatQuestion[0].choices[4]:
+              alphabetized = roles;
+              sorter(alphabetized, "title");
+              display(alphabetized);
+              init();
+              break;
+            case viewWhatQuestion[0].choices[5]:
+              init();
+              break;
+            default:
+              return undefined;
+          };
+        });
         break;
       case "Add...":
         const addQuestions = [{
@@ -194,21 +225,81 @@ function init() {
           }
         });
         break;
-      case "Remove Employee":
+      case "Remove...":
         const removeQuestion = [{
           type: "list",
-          message: "Which employee do you want to remove?",
-          name: "removeWhich",
-          choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+          message: "What do you want to remove?",
+          name: "removeWhat",
+          choices: ["Employee", "Role", "Department", "GO BACK"]
         }];
         inquirer.prompt(removeQuestion).then(ans => {
           // console.log(ans.removeWhich);
           // console.log(ans);
-          const split = ans.removeWhich.split(" ");
-          connection.query(`DELETE FROM employee WHERE id = ${split[1]}`, err => {
-            if (err) throw err;
-            init();
-          });
+          switch (ans.removeWhat) {
+            case removeQuestion[0].choices[0]:
+              const removeEmpQuestion = [{
+                type: "list",
+                message: "Which employee do you want to remove?",
+                name: "employeeToRemove",
+                choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+              }]
+              inquirer.prompt(removeEmpQuestion).then(ans => {
+                const split = ans.employeeToRemove.split(" ");
+                connection.query(`DELETE FROM employee WHERE id = ${split[1]}`, err => {
+                  if (err) throw err;
+                  init();
+              });
+              })
+              break;
+            case removeQuestion[0].choices[1]:
+              const removeRoleQuestion = [{
+                type: "list",
+                message: "Which role do you want to remove",
+                name: "roleToRemove",
+                choices: roles.map(role => {return role.title})
+              }];
+              inquirer.prompt(removeRoleQuestion).then(ans => {
+                connection.query(`SELECT employee.id FROM role INNER JOIN employee ON role.id=employee.role_id AND role.title="${ans.roleToRemove}"`, (err, res) => {
+                  if (err) throw err;
+                  // console.log(res[0].id)
+                  res.map(emp => {
+                    connection.query(`UPDATE employee SET role_id=null WHERE id=${emp.id}`, err => {
+                      if (err) throw err;
+                    })
+                  })
+                  connection.query(`DELETE FROM role WHERE title = "${ans.roleToRemove}"`, err => {
+                    if (err) throw err;
+                    init();
+                  })
+                })
+              });
+              break;
+            case removeQuestion[0].choices[2]:
+              const removeDeptQuestion = [{
+                type: "list",
+                message: "Which department do you want to remove?",
+                name: "deptToRemove",
+                choices: departments.map(dept => {return dept.name})
+              }];
+              inquirer.prompt(removeDeptQuestion).then(ans =>{
+                connection.query(`SELECT role.id FROM department INNER JOIN role ON department.id=role.department_id AND department.name="${ans.deptToRemove}"`, (err, res) => {
+                  if (err) throw err;
+                  // console.log(res[0].id)
+                  res.map(role => {
+                    connection.query(`UPDATE role SET department_id=null WHERE id=${role.id}`, err => {
+                      if (err) throw err;
+                    })
+                  })
+                  connection.query(`DELETE FROM department WHERE name = "${ans.deptToRemove}"`, err => {
+                    if (err) throw err;
+                    init();
+                  })
+                })
+              })
+              break;
+            case "GO BACK":
+              break;
+          }
         });
         break;
       case "Update Employee Role":
@@ -278,33 +369,33 @@ function init() {
         //   });
         // })
         break;
-      case "View All Roles":
-        roles.map(role => {console.log(role.title)});
-        init();
-        break;
-      case "Remove Role":
-        const removeRoleQuestion = [{
-          type: "list",
-          message: "Which role do you want to remove",
-          name: "roleToRemove",
-          choices: roles.map(role => {return role.title})
-        }];
-        inquirer.prompt(removeRoleQuestion).then(ans => {
-          connection.query(`SELECT employee.id FROM role INNER JOIN employee ON role.id=employee.role_id AND role.title="${ans.roleToRemove}"`, (err, res) => {
-            if (err) throw err;
-            // console.log(res[0].id)
-            res.map(emp => {
-              connection.query(`UPDATE employee SET role_id=null WHERE id=${emp.id}`, err => {
-                if (err) throw err;
-              })
-            })
-            connection.query(`DELETE FROM role WHERE title = "${ans.roleToRemove}"`, err => {
-              if (err) throw err;
-              init();
-            })
-          })
-        });
-        break;
+      // case "View All Roles":
+      //   roles.map(role => {console.log(role.title)});
+      //   init();
+      //   break;
+      // case "Remove Role":
+      //   const removeRoleQuestion = [{
+      //     type: "list",
+      //     message: "Which role do you want to remove",
+      //     name: "roleToRemove",
+      //     choices: roles.map(role => {return role.title})
+      //   }];
+      //   inquirer.prompt(removeRoleQuestion).then(ans => {
+      //     connection.query(`SELECT employee.id FROM role INNER JOIN employee ON role.id=employee.role_id AND role.title="${ans.roleToRemove}"`, (err, res) => {
+      //       if (err) throw err;
+      //       // console.log(res[0].id)
+      //       res.map(emp => {
+      //         connection.query(`UPDATE employee SET role_id=null WHERE id=${emp.id}`, err => {
+      //           if (err) throw err;
+      //         })
+      //       })
+      //       connection.query(`DELETE FROM role WHERE title = "${ans.roleToRemove}"`, err => {
+      //         if (err) throw err;
+      //         init();
+      //       })
+      //     })
+      //   });
+      //   break;
       case "Add department":
         break;
       case "QUIT":
