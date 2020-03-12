@@ -15,7 +15,7 @@ const connection = mysql.createConnection({
 
   user: "root",
 
-  password:  "Spackle123",
+  password:  "",
   database: "employeeTrackerDB"
 });
 
@@ -23,7 +23,7 @@ const firstQuestion = [{
   type: "list",
   message: "What would you like to do?",
   name: "whatToDo",
-  choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "View All Roles", "Add Role", "Remove Role", "QUIT"]
+  choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add...", "Remove Employee", "Update Employee Role", "Update Employee Manager", "View All Roles", "Remove Role", "QUIT"]
 }]
 
 connection.connect(err => {
@@ -95,49 +95,104 @@ function init() {
         display(alphabetized);
         init();
         break;
-      case "Add Employee":
+      case "Add...":
         const addQuestions = [{
-          message: "What is the employee's first name?",
-          name: "addFirst"
-        },{
-          message: "What is the employee's last name?",
-          name: "addLast"
-        },{
           type: "list",
-          message: "What is the employee's role?",
-          name: "addRole",
-          choices: roles.map(role => {return `${role.title}`})
-        },{
-          type: "list",
-          message: "Who is the employee's manager?",
-          name: "addManager",
-          choices: listManagers()
+          message: "What would you like to add?",
+          name: "addWhich",
+          choices: ["Employee", "Role", "Department", "GO BACK"]
         }];
         inquirer.prompt(addQuestions).then(ans => {
-          if (ans.addManager !== "None") {
-            let managerSplit = ans.addManager.split(" ");
-            connection.query(`SELECT role.id FROM role WHERE ?`, {"role.title":ans.addRole}, (err, res1) => {
-              if (err) throw err;
-              // console.log(res1[0].id);
-              connection.query("SELECT employee.id FROM employee WHERE ? AND ?", [{"employee.first_name":managerSplit[0]}, {"employee.last_name":managerSplit[1]}], (err, res2) => {
-                if (err) throw err;
-                // console.log(res2[0].id)
-                connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${ans.addFirst}", "${ans.addLast}", ${res1[0].id}, ${res2[0].id})`, (err, res3) => {
+          switch (ans.addWhich) {
+            case "Employee":
+              const addEmployeeQuestions = [{
+                message: "What is the employee's first name?",
+                name: "addFirst"
+              },{
+                message: "What is the employee's last name?",
+                name: "addLast"
+              },{
+                type: "list",
+                message: "What is the employee's role?",
+                name: "addRole",
+                choices: roles.map(role => {return `${role.title}`})
+              },{
+                type: "list",
+                message: "Who is the employee's manager?",
+                name: "addManager",
+                choices: listManagers()
+              }];
+              inquirer.prompt(addEmployeeQuestions).then(ans => {
+                if (ans.addManager !== "None") {
+                  let managerSplit = ans.addManager.split(" ");
+                  connection.query(`SELECT role.id FROM role WHERE ?`, {"role.title":ans.addRole}, (err, res1) => {
+                    if (err) throw err;
+                    // console.log(res1[0].id);
+                    connection.query("SELECT employee.id FROM employee WHERE ? AND ?", [{"employee.first_name":managerSplit[0]}, {"employee.last_name":managerSplit[1]}], (err, res2) => {
+                      if (err) throw err;
+                      // console.log(res2[0].id)
+                      connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${ans.addFirst}", "${ans.addLast}", ${res1[0].id}, ${res2[0].id})`, (err, res3) => {
+                        if (err) throw err;
+                        init();
+                      });
+                    });
+                  })
+                } else {
+                  connection.query(`SELECT role.id FROM role WHERE ?`, {"role.title":ans.addRole}, (err, res1) => {
+                    if (err) throw err;
+                    connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${ans.addFirst}", "${ans.addLast}", ${res1[0].id}, null)`, (err, res3) => {
+                      if (err) throw err;
+                      init();
+                    });
+                  });
+                }
+              })
+              break;
+            case "Role":
+              // console.log(departments);
+              // console.log(departments[1].name);
+              const addRoleQuestion = [{
+                message: "What role would you like to create?",
+                name: "newRole",
+              },{
+                message: "What is the salary for this role?",
+                name: "newSalary"
+              },{
+                type: "list",
+                message: "In which department is this role?",
+                name: "inDepartment",
+                choices: departments.map(department => {return department.name})
+                // ortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+              }];
+              inquirer.prompt(addRoleQuestion).then(ans => {
+                connection.query(`SELECT department.id FROM department WHERE department.name="${ans.inDepartment}"`, (err, res) => {
+                  // console.log(res[0].id)
+                    connection.query(`INSERT INTO role (title, salary, department_id) VALUES ("${ans.newRole}", ${ans.newSalary}, ${res[0].id})`, err => {
+                      if (err) throw err;
+                      init();
+                    });
+                  });
+                });
+              break;
+            case "Department":
+              const addDepartmentQuestion = [{
+                message: "What department would you like to create?",
+                name: "newDepartment",
+              }];
+              inquirer.prompt(addDepartmentQuestion).then(ans => {
+                connection.query(`INSERT INTO department (name) VALUES ("${ans.newDepartment}")`, err => {
                   if (err) throw err;
                   init();
                 });
               });
-            })
-          } else {
-            connection.query(`SELECT role.id FROM role WHERE ?`, {"role.title":ans.addRole}, (err, res1) => {
-              if (err) throw err;
-              connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${ans.addFirst}", "${ans.addLast}", ${res1[0].id}, null)`, (err, res3) => {
-                if (err) throw err;
-                init();
-              });
-            });
+              break;
+            case "GO BACK":
+              init();
+              break;
+            default:
+              return undefined;
           }
-        })
+        });
         break;
       case "Remove Employee":
         const removeQuestion = [{
@@ -227,37 +282,6 @@ function init() {
         roles.map(role => {console.log(role.title)});
         init();
         break;
-      case "Add Role":
-        // console.log(departments);
-        // console.log(departments[1].name);
-        const addRoleQuestion = [{
-          message: "What role would you like to create?",
-          name: "newRole",
-        },{
-          message: "What is the salary for this role?",
-          name: "newSalary"
-        },{
-          type: "list",
-          message: "In which department is this role?",
-          name: "inDepartment",
-          choices: departments.map(department => {return department.name})
-          // ortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
-        }];
-        inquirer.prompt(addRoleQuestion).then(ans => {
-          connection.query(`SELECT department.id FROM department WHERE department.name="${ans.inDepartment}"`, (err, res) => {
-            // console.log(res[0].id)
-            let newIndex;
-            connection.query(`SELECT role.id FROM role`, (err, res2) => {
-              if (err) throw err;
-              newIndex = res2[res2.length-1].id+1;
-              connection.query(`INSERT INTO role (id, title, salary, department_id) VALUES (${newIndex}, "${ans.newRole}", ${ans.newSalary}, ${res[0].id})`, err => {
-                if (err) throw err;
-                init();
-              });
-            });
-          });
-        })
-        break;
       case "Remove Role":
         const removeRoleQuestion = [{
           type: "list",
@@ -286,8 +310,8 @@ function init() {
       case "QUIT":
         connection.end();
         break;
-     default:
-      return undefined;
+      default:
+        return undefined;
     }
   })
 }
