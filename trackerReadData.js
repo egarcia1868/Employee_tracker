@@ -24,7 +24,7 @@ const firstQuestion = [{
   type: "list",
   message: "What would you like to do?",
   name: "whatToDo",
-  choices: ["View...", "Add...", "Remove...", "Update...", "Update Employee Manager", "View All Roles", "Remove Role", "QUIT"]
+  choices: ["View...", "Add...", "Remove...", "Update...", "QUIT"]
 }]
 
 connection.connect(err => {
@@ -281,6 +281,9 @@ function init() {
               }]
               inquirer.prompt(removeEmpQuestion).then(ans => {
                 const split = ans.employeeToRemove.split(" ");
+                  connection.query(`UPDATE employee SET manager_id=null WHERE manager_id=${split[1]}`, err => {
+                    if (err) throw err;
+                  })
                 connection.query(`DELETE FROM employee WHERE id = ${split[1]}`, err => {
                   if (err) throw err;
                   init();
@@ -492,8 +495,6 @@ function init() {
       //     })
       //   });
       //   break;
-      case "Add department":
-        break;
       case "QUIT":
         connection.end();
         break;

@@ -6,8 +6,9 @@ A app, run through your terminal, that can be used to create and maintain a comp
 
 1. Clone this repository to your computer
 2. Bring up the cloned folder in your terminal and run "npm i" to install the required dependencies
-3. In your terminal run "node trackerReadData.js"
-4. From here, a list of your available functions should appear.  Choose what it is you want to do and you should be walked through, by prompts, completing your task/s.
+3. In trackerReadData.js, make sure to change the password on line 19 to whatever your password is on SQL. --  !!!IMPORTANT!!!
+4. In your terminal run "node trackerReadData.js"
+5. From here, a list of your available functions should appear.  Choose what it is you want to do and you should be walked through, by prompts, completing your task/s.
 
 ## Built With
 
