@@ -65,3 +65,5 @@ SELECT employee.id FROM role INNER JOIN employee ON role.id=employee.role_id AND
 -- WHERE employee.manager_id=employee.id);
 
 -- SELECT employee.first_name FROM employee WHERE employee.first_name="geddy"
+
+SELECT department.name FROM role LEFT JOIN department ON role.title="DELETE ME4"

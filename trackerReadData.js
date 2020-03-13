@@ -2,6 +2,7 @@ const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
 const Employee = require("./Assets/script");
+require('dotenv').config();
 let sortedList;
 let alphabetized;
 let roles = [];
@@ -15,7 +16,7 @@ const connection = mysql.createConnection({
 
   user: "root",
 
-  password:  "Spackle123",
+  password:  process.env.DB_PASS,
   database: "employeeTrackerDB"
 });
 
@@ -23,7 +24,7 @@ const firstQuestion = [{
   type: "list",
   message: "What would you like to do?",
   name: "whatToDo",
-  choices: ["View...", "Add...", "Remove...", "Update Employee Role", "Update Employee Manager", "View All Roles", "Remove Role", "QUIT"]
+  choices: ["View...", "Add...", "Remove...", "Update...", "Update Employee Manager", "View All Roles", "Remove Role", "QUIT"]
 }]
 
 connection.connect(err => {
@@ -298,64 +299,124 @@ function init() {
               })
               break;
             case "GO BACK":
+              init();
               break;
+            default:
+              return undefined;
           }
         });
         break;
-      case "Update Employee Role":
-        const updateRoleQuestion = [{
+      case "Update...":
+        const updateQuestion = [{
           type: "list",
-          message: "Which employee's role do you want to update?",
-          name: "roleUpdate",
-          choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
-        },{
-          type: "list",
-          message: "What is the new role you want to assign for the selected employee?",
-          name: "updatedRole",
-          choices: roles.map(role => {return role.title})
+          message: "What would you like to update?",
+          name: "whatToUpdate",
+          choices: ["Employee's Role", "Employee's Manager", "Role's Department", "GO BACK"]
         }];
-        inquirer.prompt(updateRoleQuestion).then(ans => {
-          const split = ans.roleUpdate.split(" ");
-          // console.log(split[1]);
-          connection.query(`SELECT role.id FROM role WHERE ?`, {"title":ans.updatedRole}, (err, res1) => {
-            if (err) throw err;
-            // console.log(res1[0].id)
-            connection.query(`UPDATE employee SET role_id=${res1[0].id} WHERE ?`, {"id":split[1]}, err => {
-              if (err) throw err;
+        inquirer.prompt(updateQuestion).then(ans => {
+          switch (ans.whatToUpdate) {
+            case updateQuestion[0].choices[0]:
+              const updateRoleQuestion = [{
+                type: "list",
+                message: "Which employee's role do you want to update?",
+                name: "roleUpdate",
+                choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+              },{
+                type: "list",
+                message: "What is the new role you want to assign for the selected employee?",
+                name: "updatedRole",
+                choices: roles.map(role => {return role.title})
+              }];
+              inquirer.prompt(updateRoleQuestion).then(ans => {
+                const split = ans.roleUpdate.split(" ");
+                // console.log(split[1]);
+                connection.query(`SELECT role.id FROM role WHERE ?`, {"title":ans.updatedRole}, (err, res1) => {
+                  if (err) throw err;
+                  // console.log(res1[0].id)
+                  connection.query(`UPDATE employee SET role_id=${res1[0].id} WHERE ?`, {"id":split[1]}, err => {
+                    if (err) throw err;
+                    init();
+                  })
+                });
+              })
+              break;
+            case updateQuestion[0].choices[1]:
+              const updateManagerQuestion = [{
+                type: "list",
+                message: "Which employee's manager do you want to update?",
+                name: "managerUpdate",
+                choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+              }];
+              inquirer.prompt(updateManagerQuestion).then(ans => {
+                const split = ans.managerUpdate.split(" ");
+                const index = sortedList.findIndex(x => x.id ===parseInt(split[1]));
+                // console.log(index);
+                const removed = sortedList.splice(index, 1);
+                console.log(sortedList);
+              // connection.query(`SELECT employee.id FROM employee WHERE`)
+                const secondManagerQuestion = [{
+                  type: "list",
+                  message: "Which employee do you want to set as manager for the selected employee?",
+                  name: "newManager",
+                  choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
+                }];
+                inquirer.prompt(secondManagerQuestion).then(ans2 => {
+                  const split2 = ans2.newManager.split(" ");
+                  connection.query(`UPDATE employee SET manager_id=${split2[1]} WHERE id=${split[1]}`, err => {
+                    if (err) throw err;
+                    init();
+                  })
+                })
+              });
+              break;
+            case updateQuestion[0].choices[2]:
+              const updateDepartmentQuestion = [{
+                type: "list",
+                message: "For which role do you want to update the department?",
+                name: "DeptToUpdate",
+                choices: roles.map(role => {return role.title})
+              }];
+              inquirer.prompt(updateDepartmentQuestion).then(ans => {
+                connection.query(`SELECT department.name FROM department LEFT JOIN role ON department.id=role.department_id WHERE role.title="${ans.DeptToUpdate}"`, (err, res) => {
+                  if (err) throw err;
+                  // console.log("REEEEEEES: "+res[0].name);
+                  const index = departments.findIndex(x => x.name === res[0].name);
+                  // console.log(ans.DeptToUpdate);
+                  // console.log(departments);
+                  // console.log(index);
+                  const removed = departments.splice(index, 1);
+                  // console.log(departments);
+                // connection.query(`SELECT employee.id FROM employee WHERE`)
+                  const secondDepartmentQuestion = [{
+                    type: "list",
+                    message: "Which department do you want to switch the role into?",
+                    name: "updatedDepartment",
+                    choices: departments.map(dept => {return dept.name})
+                  }];
+                  inquirer.prompt(secondDepartmentQuestion).then(ans2 => {
+                    // const split2 = ans2.newManager.split(" ");
+                    connection.query(`SELECT department.id FROM department WHERE department.name="${ans2.updatedDepartment}"`, (err, res2) => {
+                      if (err) throw err;
+                      // console.log(res[0].id);
+                      connection.query(`UPDATE role SET department_id=${res2[0].id} WHERE title="${ans.DeptToUpdate}"`, err => {
+                        if (err) throw err;
+                        init();
+                      });
+                    });                  
+                  })
+                });
+              })
+              break;
+            case "GO BACK":
               init();
-            })
-          });
+              break;
+            default:
+              return undefined;
+          }
         })
-        break;
-      case "Update Employee Manager":
+
         // let newManagerList = [];
-        const updateManagerQuestion = [{
-          type: "list",
-          message: "Which employee's manager do you want to update?",
-          name: "managerUpdate",
-          choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
-        }];
-        inquirer.prompt(updateManagerQuestion).then(ans => {
-          const split = ans.managerUpdate.split(" ");
-          const index = sortedList.findIndex(x => x.id ===parseInt(split[1]));
-          // console.log(index);
-          const removed = sortedList.splice(index, 1);
-          console.log(sortedList);
-        // connection.query(`SELECT employee.id FROM employee WHERE`)
-          const secondManagerQuestion = [{
-            type: "list",
-            message: "Which employee do you want to set as manager for the selected employee?",
-            name: "newManager",
-            choices: sortedList.map(emp => {return "ID: "+emp.id+" - "+emp.first_name+" "+emp.last_name})
-          }];
-          inquirer.prompt(secondManagerQuestion).then(ans2 => {
-            const split2 = ans2.newManager.split(" ");
-            connection.query(`UPDATE employee SET manager_id=${split2[1]} WHERE id=${split[1]}`, err => {
-              if (err) throw err;
-              init();
-            })
-          })
-        });
+        
         // inquirer.prompt(updateRoleQuestion).then(ans => {
         //   const split = ans.roleUpdate.split(" ");
         //   // console.log(split[1]);
