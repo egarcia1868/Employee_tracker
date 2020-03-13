@@ -73,6 +73,7 @@ function listManagers() {
 };
 
 function init() {
+  console.log("\n");
   roles = [];
   departments = [];
   generateAll();
@@ -87,7 +88,7 @@ function init() {
           type: "list",
           message: "What would you like to view?",
           name: "viewWhat",
-          choices: ["All Employees", "All Employees By Department", "All Employees By Manager", "All Departments", "All Roles", "GO BACK"]
+          choices: ["All Employees", "All Employees By Department", "All Employees By Manager", "All Departments", "All Roles", "Salary Budgets of Entire Departments", "GO BACK"]
         }];
         inquirer.prompt(viewWhatQuestion).then(ans => {
           switch (ans.viewWhat) {
@@ -120,6 +121,40 @@ function init() {
               init();
               break;
             case viewWhatQuestion[0].choices[5]:
+              // console.log("\n");
+              count = 0;
+              alphabetized = departments;
+              sorter(alphabetized, "name");
+              alphabetized.map(dept => {
+                // console.log(dept)
+                // console.log(dept.name);
+                connection.query(`SELECT role.id, role.title, role.salary FROM role LEFT JOIN department ON department.id=role.department_id WHERE department.name="${dept.name}"`, (err, res) => {
+                  if (err) throw err;
+                  let budget = 0;
+                  for (let i=0;i<res.length;i++) {
+                    // console.log(`role id: ${res[i].id} | role title: ${res[i].title} | role salary: ${res[i].salary}`)
+                    connection.query(`SELECT COUNT(id) AS idCount FROM employee WHERE employee.role_id=${res[i].id}`, (err, res2) => {
+                      if (err) throw err;
+                      // console.log(`role id: ${res[i].id} | role title: ${res[i].title} | role salary: ${res[i].salary}`);
+                      // console.log("count "+res2[0].idCount);
+                      budget += (res2[0].idCount * res[i].salary)
+                      if (i+1 === res.length) {
+                        console.log(`${dept.name} department budget: $${budget}`)
+                        count++
+                      }
+                      // console.log(count+" <count alph> "+alphabetized.length)
+                      if (count === alphabetized.length) {
+                        init();
+                      }
+                      // res2[0].idCount
+                    })
+                  };
+                // console.log("-------------")
+                })
+              // count++;  
+              });
+              break;              
+            case viewWhatQuestion[0].choices[6]:
               init();
               break;
             default:

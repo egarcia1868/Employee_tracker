@@ -66,4 +66,8 @@ SELECT employee.id FROM role INNER JOIN employee ON role.id=employee.role_id AND
 
 -- SELECT employee.first_name FROM employee WHERE employee.first_name="geddy"
 
-SELECT department.name FROM role LEFT JOIN department ON role.title="DELETE ME4"
+SELECT * FROM department LEFT JOIN role ON department.id = role.department_id WHERE role.title="DELETE ME4";
+
+SELECT role.salary FROM role LEFT JOIN department ON department.id=role.department_id WHERE department.name="Legal";
+
+SELECT COUNT(id) FROM employee WHERE employee.role_id=4

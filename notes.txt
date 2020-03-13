@@ -20,3 +20,4 @@ In a seperate js file, write out code grouping employees by various criteria
    
 /      delete role
 
+I am grabbing all salaries for roles.  Now I need to grab each employee with each role and multiply the number of employees by the salary of that role. 
