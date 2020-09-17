@@ -1,6 +1,6 @@
 # Employee Tracker
 
-A app, run through your terminal, that can be used to create and maintain a company's roster of employees, employee roles, and departments.
+An app, run through your terminal, that can be used to create and maintain a company's roster of employees, employee roles, and departments.
 
 ## Getting Started
 
@@ -20,5 +20,5 @@ A app, run through your terminal, that can be used to create and maintain a comp
 
 ## Acknowledgments
 
-* Big ups to my mentor, Calvin Carter for help throughout the production of this and many of my other projects.
+* Big ups to my mentor, Calvin Carter, for help throughout the production of this and many of my other projects.
 * Tons of help for this was found at w3schools (https://www.w3schools.com/), mozilla (https://developer.mozilla.org/), and various googleables
